@@ -55,7 +55,7 @@ def install_ossfs():
 
 def configure_ossfs():
     """配置ossfs密钥"""
-    passwd_file = os.path.join(file_path,'passwd-ossfs')
+    passwd_file = os.path.join(file_path+'/passwd','passwd-ossfs')
 
     if not os.path.exists(passwd_file) or os.path.getsize(passwd_file) == 0:
         print("未发现密钥。")

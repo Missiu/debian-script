@@ -7,7 +7,10 @@
   - 挂载oss
     - 使用Supervisor启动ossfs
     - Supervisor是用Python开发的一套通用的进程管理程序，能将一个普通的命令行进程变为后台daemon，并监控进程状态。异常退出时能自动重启。
-- 运行：sudo wget -P /home -N --no-check-certificate "https://raw.githubusercontent.com/Missiu/debian-script/main/py/ossfs.py" && sudo chmod 700 /home/ossfs.py && sudo python3 /home/ossfs.py
+- 运行：
+```sh
+sudo wget -P /home -N --no-check-certificate "https://raw.githubusercontent.com/Missiu/debian-script/main/py/ossfs.py" && sudo chmod 700 /home/ossfs.py && sudo python3 /home/ossfs.py
+```
 - 说明：
   - 如果出现：error while loading shared libraries: libcrypto.so.10: cannot open shared object file: No such file or directory,请更换下载的oosfs版本，[oosfs项目地址](https://github.com/aliyun/ossfs/releases)
   - 脚本产生的其他文件可以自定义路径，进行统一，运行完成后脚本自动删除
