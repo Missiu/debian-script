@@ -61,7 +61,7 @@ def configure_ossfs():
         print("未发现密钥。")
         print("开始添加密钥。")
         # 确保目录存在
-        os.makedirs(file_path, exist_ok=True)
+        os.makedirs(file_path+'/passwd', exist_ok=True)
         # 创建文件
         with open(passwd_file, 'w') as f:
             pass  # 创建空文件           
