@@ -11,5 +11,3 @@
   - --no-check-certificate: 忽略证书验证。
   - wget: 用于下载文件。
   - chmod 700: 设置文件权限为700。
-  - /home/update_sshd_config.sh: 指定要下载的文件。
-- 执行说明：会在执行完后删除此脚本

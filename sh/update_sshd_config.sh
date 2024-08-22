@@ -46,12 +46,16 @@ if [ $? -eq 0 ]; then
         # 删除备份文件
         rm -f $BACKUP_FILE
         # 脚本执行完后删除自己
+        echo "脚本执行完成，正在自我删除。"
         rm -- "$0"
+        echo "脚本文件已成功删除，感谢使用。"
     fi
 else
     echo "${PARAM_NAME}已配置为yes或不存在，无需修改。"
     # 删除备份文件
     rm -f $BACKUP_FILE
     # 脚本执行完后删除自己
+    echo "脚本执行完成，正在自我删除。"
     rm -- "$0"
+    echo "脚本文件已成功删除，感谢使用。"
 fi
