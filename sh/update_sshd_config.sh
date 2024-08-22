@@ -45,9 +45,13 @@ if [ $? -eq 0 ]; then
         fi
         # 删除备份文件
         rm -f $BACKUP_FILE
+        # 脚本执行完后删除自己
+        rm -- "$0"
     fi
 else
     echo "${PARAM_NAME}已配置为yes或不存在，无需修改。"
     # 删除备份文件
     rm -f $BACKUP_FILE
+    # 脚本执行完后删除自己
+    rm -- "$0"
 fi
