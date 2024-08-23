@@ -47,12 +47,6 @@ def install_required_packages():
         print_message("安装 termcolor...", 'cyan')
         run_command(['pip3', 'install', 'termcolor'])
 
-def download_script(script_url, dest_path):
-    """下载并设置脚本权限"""
-    print_message(f"从 {script_url} 下载脚本...", 'cyan')
-    run_command(['sudo', 'wget', '-P', os.path.dirname(dest_path), '-N', '--no-check-certificate', script_url])
-    run_command(['sudo', 'chmod', '700', dest_path])
-    print_message(f"脚本已下载并设置权限: {dest_path}", 'green')
 
 # 全局变量
 file_path = "/home/ossfs"
@@ -213,12 +207,8 @@ logfile_backups=10
         print_message(f"ossfs启动失败: {e}", 'red')
 
 def main():
-    script_url = "https://raw.githubusercontent.com/Missiu/debian-script/main/py/ossfs.py"
-    script_dest = "/home/ossfs.py"
 
     install_required_packages()
-    download_script(script_url, script_dest)
-    
     initialize_globals()
     if not check_ossfs_installed():
         install_ossfs()
