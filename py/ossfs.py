@@ -192,7 +192,7 @@ echo "Finished."
 [supervisord]
 nodaemon=true
 logfile={file_path}/log/supervisord.log
-pidfile={file_path}/run/supervisord.pid
+pidfile=/run/supervisord.pid
 user=root
 
 [program:ossfs]
@@ -207,7 +207,7 @@ logfile_backups=10
         f.write(supervisor_conf)
 
     try:
-        run_command(['supervisord'])
+        process = subprocess.Popen(['supervisord', '-c', supervisor_conf_path, '-d'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         print_message("ossfs启动成功", 'green')
     except Exception as e:
         print_message(f"ossfs启动失败: {e}", 'red')
