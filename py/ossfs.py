@@ -192,7 +192,7 @@ echo "Finished."
 [supervisord]
 nodaemon=true
 logfile={file_path}/log/supervisord.log
-pidfile=/var/run/supervisord.pid
+pidfile={file_path}/run/supervisord.pid
 user=root
 
 [program:ossfs]
