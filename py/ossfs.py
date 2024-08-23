@@ -49,13 +49,16 @@ def install_required_packages():
 
 
 # 全局变量
-file_path = "/home/ossfs"
-
+file_path = "/home/supervisord/ossfs"
+supervisor_path = '/home/supervisord'
 def initialize_globals():
     """初始化全局变量"""
     global file_path
+    print_message("========      此脚本使用supervisord管理ossfs进程      ========")
+    print_message("======== supervisord默认使用目录为: /home/supervisord ========")
+
     file_path = get_user_input(
-        "请输入ossfs脚本运行中的主目录 (默认为 /home/ossfs): ", default="/home/ossfs"
+        "请输入ossfs脚本运行中的主目录 (默认为 /home/supervisord/program/ossfs): ", default="/home/supervisord/program/ossfs"
     )
     create_directory(file_path)
 
@@ -137,7 +140,7 @@ def mount_oss():
     selected_bucket = secrets[choice - 1].split(':')[0]
 
     local_path = get_user_input("请输入oss挂载到服务器上的路径 (默认为 /home/data): ", default="/home/data")
-    region = get_user_input("请输入oss存储空间所在地域名称 (必填): ", required=True)
+    region = get_user_input("请输入oss存储空间所在地域名称 如: oss-cn-hongkong-internal.aliyuncs.com (必填): ", required=True)
 
     create_directory(local_path)
     run_command(['sudo', 'apt-get', 'install', '-y', 'supervisor'])
@@ -151,8 +154,7 @@ def mount_oss():
     if os.path.exists(start_ossfs_script):
         with open(start_ossfs_script, 'r') as f:
             if umount_command in f.read():
-                print_message(f"{local_path} 已在 {start_ossfs_script} 中配置，无需更改。", 'cyan')
-                return
+                print_message(f"挂载路径 {local_path} 已在 {start_ossfs_script} 中配置，无需更改。", 'cyan')
 
     script_content = f"""\
 #!/bin/bash
@@ -167,12 +169,16 @@ echo "Finished."
     with open(start_ossfs_script, 'a') as f:
         f.write(script_content)
     os.chmod(start_ossfs_script, 0o700)
-
-    supervisor_conf_path = os.path.join(file_path, 'supervisord', 'supervisord.conf')
-    create_directory(os.path.join(file_path, 'supervisord'))
-    create_directory(os.path.join(file_path, 'log'))
-    create_directory(os.path.join(file_path, 'run'))
-
+    # file_path = "/home/supervisord/ossfs"
+    # supervisord配置
+    file_path_ini = os.path.join(file_path, 'ossfs.ini')
+    supervisor_conf_path = os.path.join(supervisor_path, 'supervisord.conf')
+    create_directory(os.path.join(supervisor_path, 'log'))
+    create_directory(os.path.join(supervisor_path, 'run'))
+    port =  get_user_input("请输入supervisord port (默认为9001): ",default="9001")
+    username = get_user_input("请输入supervisord username (默认为root): ",default="root")
+    password = get_user_input("请输入supervisord password (默认为1234): ",default="1234")
+    ip = '0.0.0.0' 
     target = '/etc/supervisor/supervisord.conf'
     try:
         if os.path.islink(target) or os.path.exists(target):
@@ -183,25 +189,82 @@ echo "Finished."
         print_message(f"创建软链接失败: {e}", 'red')
 
     supervisor_conf = f"""\
+[inet_http_server]    
+port={ip}:{port}
+username={username}
+password={password}
+
 [supervisord]
-nodaemon=true
-logfile={file_path}/log/supervisord.log
-pidfile={file_path}/run/supervisord.pid
+nodaemon=false
+logfile={supervisor_path}/log/supervisord.log
+pidfile={supervisor_path}/run/supervisord.pid
+nocleanup=true
+logfile_backups=10
+logfile_maxbytes=50MB
 user=root
 
+[supervisorctl]
+serverurl=http://{ip}:{port}
+"""
+    supervisor_ossfs_conf = f"""\
 [program:ossfs]
 command=bash {start_ossfs_script}
 autostart=true
 autorestart=true
-logfile={file_path}/log/ossfs.log
+stopasgroup=true
+killasgroup=true
+logfile={file_path}/log/
 logfile_maxbytes=1MB
 logfile_backups=10
+stdout_logfile={file_path}/log
+stdout_logfile_maxbytes=1MB
+stdout_logfile_backups=10
+stdout_capture_maxbytes=1MB
 """
-    with open(supervisor_conf_path, 'a') as f:
-        f.write(supervisor_conf)
+    supervisor_ossfs_ini = f"""\
+[include]
+files = {file_path_ini}
+"""
+    with open(file_path_ini, 'w') as f:
+        f.write(supervisor_ossfs_conf)
+
+    # 检查 supervisor_conf_path 文件中是否存在 [include] 部分
+    if not os.path.exists(supervisor_conf_path):
+        with open(supervisor_conf_path, 'a') as f:
+            f.write(supervisor_conf)
+            f.write(supervisor_ossfs_ini)    
+    else: 
+        with open(supervisor_conf_path, 'r') as f:
+            content = f.read()
+        
+        # 检查是否存在 [include] 部分
+        if '[include]' in content:
+            # 读取原始文件内容
+            with open(supervisor_conf_path, 'r') as f:
+                original_content = f.readlines()
+
+            # 查找 [include] 部分所在行号
+            include_line_index = None
+            for i, line in enumerate(original_content):
+                if line.strip() == '[include]':
+                    include_line_index = i
+                    break
+
+            if include_line_index is not None:
+                # 在 [include] 部分的下一行追加 files = file_path_ini
+                original_content.insert(include_line_index + 1, f"files = {file_path_ini}\n")
+
+                # 写回修改后的内容
+                with open(supervisor_conf_path, 'w') as f:
+                    f.writelines(original_content)
+        else:
+            with open(supervisor_conf_path, 'a') as f:
+                f.write(supervisor_ossfs_ini)     
+        
 
     try:
-        process = subprocess.Popen(['supervisord', '-c', supervisor_conf_path, '-d'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        run_command(['sudo','systemctl','start','supervisor'])
+        run_command(['sudo','systemctl','status','supervisor'])
         print_message("ossfs启动成功", 'green')
     except Exception as e:
         print_message(f"ossfs启动失败: {e}", 'red')
