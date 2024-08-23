@@ -14,7 +14,7 @@ sudo wget -O /home/ossfs.py https://raw.githubusercontent.com/Missiu/debian-scri
 - 说明：
   - 如果出现：error while loading shared libraries: libcrypto.so.10: cannot open shared object file: No such file or directory,请更换下载的oosfs版本，[oosfs项目地址](https://github.com/aliyun/ossfs/releases)
   - 脚本产生的其他文件可以自定义路径，进行统一，运行完成后脚本自动删除
-  - 本脚本针对debian系统，通过Supervisor把ossfs挂载为系统服务，方便管理，其中常用的命令如下： 
-    - sudo supervisorctl status
-    - sudo supervisorctl start
-    - sudo supervisorctl stop
+  - 本脚本针对debian系统，通过Supervisor把ossfs挂载为系统服务，方便管理，其中常用的命令如下：
+    - sudo systemctl start supervisor
+    - sudo systemctl status supervisor
+    - sudo systemctl stop supervisor

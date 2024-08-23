@@ -2,7 +2,7 @@ import os
 import subprocess
 from urllib.parse import urlparse
 from termcolor import colored
-
+import socket
 def print_message(message, color='green'):
     """打印彩色信息"""
     print(colored(message, color))
@@ -149,13 +149,8 @@ def mount_oss():
     create_directory(ossfs_scripts)
 
     start_ossfs_script = os.path.join(ossfs_scripts, 'start_ossfs.sh')
+
     umount_command = f"sudo umount {local_path}"
-
-    if os.path.exists(start_ossfs_script):
-        with open(start_ossfs_script, 'r') as f:
-            if umount_command in f.read():
-                print_message(f"挂载路径 {local_path} 已在 {start_ossfs_script} 中配置，无需更改。", 'cyan')
-
     script_content = f"""\
 #!/bin/bash
 echo "Unmounting {local_path}..."
@@ -166,10 +161,22 @@ ossfs {selected_bucket} {local_path} -ourl={region} -f -o passwd_file={passwd_fi
 
 echo "Finished."
 """
-    with open(start_ossfs_script, 'a') as f:
-        f.write(script_content)
+    
+    if os.path.exists(start_ossfs_script):
+        # 一次打开文件，并使用with语句确保文件正确关闭
+        with open(start_ossfs_script, 'r+') as f:  # 使用'r+'模式以便读写
+            content = f.read()
+            if umount_command in content:
+                print_message(f"挂载路径 {local_path} 已在 {start_ossfs_script} 中配置，无需更改。", 'cyan')
+            else:
+                # 移动文件指针到文件末尾
+                f.seek(0, os.SEEK_END)
+                f.write(script_content)   
+    else:
+        with open(start_ossfs_script, 'w') as f:
+            f.write(script_content)
+
     os.chmod(start_ossfs_script, 0o700)
-    # file_path = "/home/supervisord/ossfs"
     # supervisord配置
     file_path_ini = os.path.join(file_path, 'ossfs.ini')
     supervisor_conf_path = os.path.join(supervisor_path, 'supervisord.conf')
@@ -264,11 +271,23 @@ files = {file_path_ini}
 
     try:
         run_command(['sudo','systemctl','start','supervisor'])
-        run_command(['sudo','systemctl','status','supervisor'])
-        print_message("ossfs启动成功", 'green')
+        run_command(['sudo','systemctl','restart','supervisor'])
+        print_message("====  ossfs启动成功  ====", 'green')
+        print_message(f"==== supervisor管理地址: http://{get_ip_address}:{port}  ====", 'green')
     except Exception as e:
         print_message(f"ossfs启动失败: {e}", 'red')
-
+def get_ip_address():
+    # 创建一个未连接的套接字
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # 连接到一个外部服务器以获取外网IP（不会真正发送数据）
+        s.connect(('8.8.8.8', 1))  # Google Public DNS
+        ip_address = s.getsockname()[0]
+    except Exception:
+        ip_address = '127.0.0.1'
+    finally:
+        s.close()
+    return ip_address
 def main():
 
     install_required_packages()
