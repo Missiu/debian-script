@@ -241,36 +241,41 @@ files = {file_path_ini}
             f.write(supervisor_conf)
             f.write(supervisor_ossfs_ini)    
     else: 
+        # 读取配置文件内容
         with open(supervisor_conf_path, 'r') as f:
             content = f.read()
         
-        # 检查是否存在 [include] 部分
+        # 判断 [include] 部分是否存在
         if '[include]' in content:
-            # 读取原始文件内容
+            # 读取原始文件内容并逐行分析
             with open(supervisor_conf_path, 'r') as f:
                 original_content = f.readlines()
-
+            
             # 查找 files = 部分所在行号
             include_line_index = None
             for i, line in enumerate(original_content):
-                if line.strip() == 'files =':
+                if line.strip().startswith('files ='):
                     include_line_index = i
                     break
-
+            
             if include_line_index is not None:
-                # 添加条件检查
-                if "files =" in original_content[include_line_index]:
-                    new_files_line = f"files = {line.split('files = ')[1].strip()}  {file_path_ini}\n"
-                    original_content[include_line_index] = new_files_line
-                    # 写回修改后的内容
-                    with open(supervisor_conf_path, 'w') as f:
-                        f.writelines(original_content)
-                else:
-                    with open(supervisor_conf_path, 'a') as f:
-                        f.write(supervisor_ossfs_ini)
+                # 获取当前的文件路径列表，并添加新的路径
+                existing_files = original_content[include_line_index].split('files = ')[1].strip()
+                new_files_line = f"files = {existing_files} {file_path_ini}\n"
+                original_content[include_line_index] = new_files_line
+            else:
+                # 如果 [include] 存在但没有 files = 部分，直接添加新的 files 行
+                original_content.append(f"files = {file_path_ini}\n")
+            
+            # 写回修改后的内容
+            with open(supervisor_conf_path, 'w') as f:
+                f.writelines(original_content)
         else:
+            # 如果 [include] 部分不存在，直接添加 [include] 和 files 行
             with open(supervisor_conf_path, 'a') as f:
-                f.write(supervisor_ossfs_ini)     
+                f.write(f"\n[include]\nfiles = {file_path_ini}\n")
+        
+        print_message(f"成功更新配置文件 {supervisor_conf_path}，添加了文件路径 {file_path_ini}","green")
         
 
     try:

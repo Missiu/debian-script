@@ -18,3 +18,7 @@ sudo wget -O /home/ossfs.py https://raw.githubusercontent.com/Missiu/debian-scri
     - sudo systemctl start supervisor
     - sudo systemctl status supervisor
     - sudo systemctl stop supervisor
+  - 目录说明
+    - supervisord.conf 配置supervisord服务的配置文件，具体配置参考supervisord官网
+    - 在program中有受supervisord管理的项目，其中ossfs每个挂载的目录都被设置为了进程
+    - 每个ossfs每个挂载的目录名称都为挂载路径的尾部，比如 /mnt/oss/test/ 为test 其中有执行脚本已经服务配置文件
