@@ -145,10 +145,10 @@ def mount_oss():
     create_directory(local_path)
     run_command(['sudo', 'apt-get', 'install', '-y', 'supervisor'])
 
-    ossfs_scripts = os.path.join(file_path, "scripts")
+    ossfs_scripts = os.path.join(file_path, os.path.basename(local_path))
     create_directory(ossfs_scripts)
 
-    start_ossfs_script = os.path.join(ossfs_scripts, 'start_ossfs.sh')
+    start_ossfs_script = os.path.join(ossfs_scripts, f'start_ossfs_{os.path.basename(local_path)}.sh')
 
     umount_command = f"sudo umount {local_path}"
     script_content = f"""\
@@ -178,7 +178,7 @@ echo "Finished."
 
     os.chmod(start_ossfs_script, 0o700)
     # supervisord配置
-    file_path_ini = os.path.join(file_path, 'ossfs.ini')
+    file_path_ini = os.path.join(ossfs_scripts, f'config_ossfs_{os.path.basename(local_path)}.ini')
     supervisor_conf_path = os.path.join(supervisor_path, 'supervisord.conf')
     create_directory(os.path.join(supervisor_path, 'log'))
     create_directory(os.path.join(supervisor_path, 'run'))
