@@ -214,7 +214,7 @@ user=root
 serverurl=http://{ip}:{port}
 """
     supervisor_ossfs_conf = f"""\
-[program:ossfs]
+[program:ossfs_{os.path.basename(local_path)}]
 command=bash {start_ossfs_script}
 autostart=true
 autorestart=true
@@ -258,12 +258,16 @@ files = {file_path_ini}
                     break
 
             if include_line_index is not None:
-                # 在 [include] 部分的下一行追加 files = file_path_ini
-                original_content.insert(include_line_index + 1, f"files = {file_path_ini}\n")
-
-                # 写回修改后的内容
-                with open(supervisor_conf_path, 'w') as f:
-                    f.writelines(original_content)
+                # 添加条件检查
+                if "files =" in original_content[include_line_index]:
+                    new_files_line = f"files = {line.split('files = ')[1].strip()}  {file_path_ini}\n"
+                    original_content[include_line_index] = new_files_line
+                    # 写回修改后的内容
+                    with open(supervisor_conf_path, 'w') as f:
+                        f.writelines(original_content)
+                else:
+                    with open(supervisor_conf_path, 'a') as f:
+                        f.write(supervisor_ossfs_ini)
         else:
             with open(supervisor_conf_path, 'a') as f:
                 f.write(supervisor_ossfs_ini)     
@@ -273,7 +277,7 @@ files = {file_path_ini}
         run_command(['sudo','systemctl','start','supervisor'])
         run_command(['sudo','systemctl','restart','supervisor'])
         print_message("====  ossfs启动成功  ====", 'green')
-        print_message(f"==== supervisor管理地址: http://{get_ip_address}:{port}  ====", 'green')
+        print_message(f"==== supervisor管理地址: http://{get_ip_address()}:{port}  ====", 'green')
     except Exception as e:
         print_message(f"ossfs启动失败: {e}", 'red')
 def get_ip_address():
