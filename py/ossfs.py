@@ -250,10 +250,10 @@ files = {file_path_ini}
             with open(supervisor_conf_path, 'r') as f:
                 original_content = f.readlines()
 
-            # 查找 [include] 部分所在行号
+            # 查找 files = 部分所在行号
             include_line_index = None
             for i, line in enumerate(original_content):
-                if line.strip() == '[include]':
+                if line.strip() == 'files =':
                     include_line_index = i
                     break
 
