@@ -1,8 +1,11 @@
 import os
 import subprocess
 from urllib.parse import urlparse
-from termcolor import colored
 import socket
+from termcolor import colored
+import requests
+
+
 def print_message(message, color='green'):
     """打印彩色信息"""
     print(colored(message, color))
@@ -286,17 +289,16 @@ files = {file_path_ini}
     except Exception as e:
         print_message(f"ossfs启动失败: {e}", 'red')
 def get_ip_address():
-    # 创建一个未连接的套接字
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        # 连接到一个外部服务器以获取外网IP（不会真正发送数据）
-        s.connect(('8.8.8.8', 1))  # Google Public DNS
-        ip_address = s.getsockname()[0]
-    except Exception:
-        ip_address = '127.0.0.1'
-    finally:
-        s.close()
-    return ip_address
+        response = requests.get('http://ip-api.com/json')
+        if response.status_code == 200:
+            data = response.json()
+            return data['query']
+        else:
+            return 'Failed to retrieve public IP address.'
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return 'Failed to retrieve public IP address.'
 def main():
 
     install_required_packages()
