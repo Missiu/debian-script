@@ -6,6 +6,7 @@
 
 完全的新系统需要：sudo apt-get update -y && sudo apt-get install wget -y && sudo apt-get install curl -y
 
+ossfs一键安装脚本
 
 ### 文件目录说明
 ```
@@ -18,6 +19,7 @@ filetree
  	├── sh1.sh # 脚本
 	└── readme.md # 脚本说明
 ```
+
 
 
 
