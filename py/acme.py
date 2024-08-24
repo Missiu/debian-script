@@ -2,7 +2,7 @@ import os
 import subprocess
 from termcolor import colored
 import sys
-
+import shutil
 def print_message(message, color='green'):
     """打印彩色信息"""
     print(colored(message, color))
@@ -44,13 +44,13 @@ def check_command(cmd):
 
 def check_environment():
     """检查是否安装了必要的命令。"""
-    required_commands = ['git', 'curl', 'wget', 'openssl']
+    required_commands = ['git', 'curl', 'wget', 'openssl','socat']
     missing = [cmd for cmd in required_commands if not check_command(cmd)]
     if missing:
         print_message(f"缺少以下命令：{', '.join(missing)}", 'red')
         # 安装依赖
         run_command(['sudo', 'apt-get', 'update'])
-        run_command(['sudo', 'apt-get', 'install', '-y', 'git', 'curl', 'wget', 'openssl'])
+        run_command(['sudo', 'apt-get', 'install', '-y', 'git', 'curl', 'wget', 'openssl','socat'])
         check_environment()
     print_message("环境检查通过。", 'green')
 
@@ -76,7 +76,8 @@ def install_acme(home_dir, config_home, email,istall_dir):
         print_message("acme.sh 安装失败", 'red')
         sys.exit(1)
     # 删除临时目录
-    os.remove(istall_dir)
+    print_message("acme.sh 安装成功", 'green')
+    shutil.rmtree(istall_dir)
         
     # 创建软连接
     # 创建符号链接，指向 /usr/local/bin
@@ -149,14 +150,14 @@ def deploy_certificate(domain, nginx_cert_dir):
     """将签发的证书部署到Nginx。"""
     key_file = os.path.join(nginx_cert_dir, f"{domain}.key")
     cert_file = os.path.join(nginx_cert_dir, f"{domain}.cer")
-    get_user_input = get_user_input("请输入您服务器上nginx重启的命令，默认为(service nginx force-reload)", required=False,default="service nginx force-reload")
+    restart_nginx = get_user_input("请输入您服务器上nginx重启的命令，默认为(service nginx force-reload)", required=False,default="service nginx force-reload")
     print_message(f"常见的命令有：service nginx force-reload，systemctl reload nginx，nginx -s reload","cyan")
     print_message(f"docker中命令有：docker exec -it nginx nginx -s reload","cyan")
     deploy_command = [
         'acme.sh', '--install-cert', '-d', domain, 
         '--key-file', key_file, 
         '--fullchain-file', cert_file, 
-        '--reloadcmd', get_user_input
+        '--reloadcmd', restart_nginx
     ]
     result = run_command(deploy_command, check=True, silent=False)
     if result.returncode != 0:
@@ -207,6 +208,6 @@ def main():
         print_message("脚本文件已成功删除，感谢使用。", 'green')
     except Exception as e:
         print_message(f"删除脚本文件失败: {e}", 'red')
-        
+
 if __name__ == "__main__":
     main()
