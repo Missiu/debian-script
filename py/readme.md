@@ -22,7 +22,10 @@ sudo wget -O /home/ossfs.py https://raw.githubusercontent.com/Missiu/debian-scri
     - supervisord.conf 配置supervisord服务的配置文件，具体配置参考supervisord官网
     - 在program中有受supervisord管理的项目，其中ossfs每个挂载的目录都被设置为了进程
     - 每个ossfs每个挂载的目录名称都为挂载路径的尾部，比如 /mnt/oss/test/ 为test 其中有执行脚本已经服务配置文件
-  - 创建了软连接 /etc/supervisor/supervisord.conf   
+  - 创建了软连接 /etc/supervisor/supervisord.conf  
+
+---
+ 
 ## acme
 - 作用：自动安装并且通过cdn申请泛域名证书，并且可以自行选择安装证书的目录
 - 概述：
@@ -38,5 +41,6 @@ sudo wget -O /home/ossfs.py https://raw.githubusercontent.com/Missiu/debian-scri
 ```sh
 sudo wget -O /home/acme.py https://raw.githubusercontent.com/Missiu/debian-script/main/py/acme.py && pip install termcolor && sudo chmod 700 /home/acme.py && sudo python3 /home/acme.py
 ```
+- 说明：目前只支持debian系统的阿里云cdn泛域名申请
 - 创建了软连接 /usr/local/bin/acme.sh
 

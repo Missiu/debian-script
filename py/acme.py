@@ -94,7 +94,7 @@ def configure_dns_api():
     """根据用户输入配置 acme.sh 的 DNS API 验证。"""
     cdns = {
         "阿里云": ("dns_ali", "Ali"),
-        "Cloudflare": ("dns_cf", "CF"),
+        # "Cloudflare": ("dns_cf", "CF"),
         # 可以添加其他 DNS 提供商
     }
 
@@ -150,9 +150,9 @@ def deploy_certificate(domain, nginx_cert_dir):
     """将签发的证书部署到Nginx。"""
     key_file = os.path.join(nginx_cert_dir, f"{domain}.key")
     cert_file = os.path.join(nginx_cert_dir, f"{domain}.cer")
-    restart_nginx = get_user_input("请输入您服务器上nginx重启的命令，默认为(service nginx force-reload)", required=False,default="service nginx force-reload")
     print_message(f"常见的命令有：service nginx force-reload，systemctl reload nginx，nginx -s reload","cyan")
     print_message(f"docker中命令有：docker exec -it nginx nginx -s reload","cyan")
+    restart_nginx = get_user_input("请输入您服务器上nginx重启的命令，默认为(service nginx force-reload)", required=False,default="service nginx force-reload")
     deploy_command = [
         'acme.sh', '--install-cert', '-d', domain, 
         '--key-file', key_file, 
